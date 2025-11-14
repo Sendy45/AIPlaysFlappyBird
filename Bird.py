@@ -1,12 +1,12 @@
 import pygame
 class Bird:
-    flap_strength = 250
+    flap_strength = 300
     def __init__(self, y: int):
         self.x = 40
         self.y = y # Screen Height // 2
-        self.radius = 20
+        self.radius = 30
         self.velocity = 0
-        self.gravity = 500
+        self.gravity = 800
 
     def update(self, dt):
         self.velocity += self.gravity * dt
