@@ -1,4 +1,6 @@
 import pygame
+from Genome import Genome
+
 class Bird:
     flap_strength = 300
     def __init__(self, y: int):
@@ -7,6 +9,9 @@ class Bird:
         self.radius = 30
         self.velocity = 0
         self.gravity = 800
+        self.genome = Genome(4, 6, 1)
+        self.score = 0
+        self.alive = True
 
     def update(self, dt):
         self.velocity += self.gravity * dt

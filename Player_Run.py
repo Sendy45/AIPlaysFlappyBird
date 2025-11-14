@@ -30,9 +30,11 @@ def bird_walls_collision(bird: Bird, screen: pygame.Surface):
     return bird.y + bird.radius > screen.get_height() or bird.y - bird.radius < 0
 
 
-def run_game():
+def run_game() -> int:
     pygame.init()
     screen = pygame.display.set_mode((800, 600))
+
+    score = 0
 
     running = True
     clock = pygame.time.Clock()
@@ -71,13 +73,13 @@ def run_game():
 
         if pipes[0].get_top_part().right < 0:
             pipes.pop(0)
+            score += 1
 
         pygame.display.flip()
         clock.tick(FPS)
 
-
-
     pygame.quit()
+    return score
 
 if __name__ == "__main__":
-    run_game()
+    print(run_game())
