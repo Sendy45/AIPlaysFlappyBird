@@ -11,6 +11,7 @@ class Bird:
         self.gravity = 800
         self.genome = Genome(4, 6, 1)
         self.score = 0
+        self.fitness = 0
         self.alive = True
 
     def update(self, dt):
@@ -18,7 +19,7 @@ class Bird:
         self.y += self.velocity * dt
 
     def draw(self, screen):
-        pygame.draw.circle(screen, (255, 0, 0), (self.x, self.y), self.radius)
+        pygame.draw.circle(screen, (255, 255, 0), (self.x, self.y), self.radius)
 
     def flap(self):
         self.velocity = -Bird.flap_strength

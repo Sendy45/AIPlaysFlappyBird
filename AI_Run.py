@@ -12,18 +12,18 @@ def initialize_population(pop_size: int, y: int):
 
 def selection(population: list[Bird], y: int, elites: int):
     # sort population by score and get the top birds
-    new_population = sorted(population, key=lambda x: x.score, reverse=False)[:elites]
+    elites = sorted(population, key=lambda x: x.fitness, reverse=True)[:elites]
+    new_population = elites.copy()
 
     while len(new_population) < len(population):
-        p1, p2 = random.sample(new_population, 2)
+        p1, p2 = random.sample(elites, 2)
 
         child = Genome.crossover(p1.genome, p2.genome)
 
-        p1.genome.mutate()
-        p2.genome.mutate()
-
+        # create new bird
         new_bird = Bird(y)
         new_bird.genome.weights = child
+        new_bird.genome.mutate()
         new_population.append(new_bird)
 
     return new_population
@@ -58,17 +58,19 @@ def bird_walls_collision(bird: Bird, screen: pygame.Surface):
     return bird.y + bird.radius > screen.get_height() or bird.y - bird.radius < 0
 
 
-def run_simulation(birds: list[Bird], screen: pygame.Surface) -> list[Bird]:
+def run_simulation(birds: list[Bird], screen: pygame.Surface, total_score: int) -> list[Bird]:
     pygame.init()
-
-    scores = [0] * len(birds)
 
     clock = pygame.time.Clock()
     FPS = 60
 
+    time_passed = 0
+
     pipes = [Pipe(screen.get_width(), screen.get_height())]
 
     pipe_interval = 400
+
+    best_score = 0
 
     while True:
         dt = clock.tick(FPS) / 1000
@@ -91,9 +93,18 @@ def run_simulation(birds: list[Bird], screen: pygame.Surface) -> list[Bird]:
             bird.draw(screen)
             bird.update(dt)
 
-            # Bird died
-            if bird_pipe_collision(bird, pipes[0]) or bird_walls_collision(bird, screen):
+            # Bird died to height
+            if bird_walls_collision(bird, screen):
+                bird.fitness += time_passed
+                bird.fitness -= 100 # punish
                 bird.alive = False
+
+            # Bird died to pipe
+            if bird_pipe_collision(bird, pipes[0]):
+                bird.fitness += time_passed
+                bird.fitness -= 50
+                bird.alive = False
+
 
         # Draw and move pipes
         for pipe in pipes:
@@ -109,28 +120,50 @@ def run_simulation(birds: list[Bird], screen: pygame.Surface) -> list[Bird]:
             pipes.pop(0)
 
             for b in (x for x in birds if x.alive):
+                b.fitness += 100 # Treat
                 b.score += 1
+                if b.score > best_score:
+                    best_score = b.score
+                if b.score >= total_score:
+                    b.alive = False
 
         # End run
         if not any(b.alive for b in birds):
             return birds
 
+        # Show current score
+        font = pygame.font.Font(None, 100)  # None = default font
+        img = font.render(str(best_score), True, "red")
+        screen.blit(img, (0, 0))
+
         pygame.display.flip()
         clock.tick(FPS)
+        time_passed += dt
 
 if __name__ == "__main__":
     generations = 50
     pop_size = 100
+    total_score = 5
     screen = pygame.display.set_mode((800, 600))
-    birds = initialize_population(pop_size, screen.get_height()//2)
+    init_y = screen.get_height()//2
+    birds = initialize_population(pop_size, init_y)
 
     for gen in range(generations):
 
-        birds = run_simulation(birds, screen)
+        birds = run_simulation(birds, screen, total_score)
 
         print(max(b.score for b in birds))
 
+        birds = selection(birds, init_y, 5)
+
         for b in birds:
             b.alive = True
+            b.score = 0
+            b.fitness = 0
+            b.y = init_y
+            b.velocity = 0
 
-        birds = selection(birds, screen.get_height()//2, 5)
+        if gen % 10 == 0:
+            total_score += 5
+
+    print(birds[0].genome.weights)

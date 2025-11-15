@@ -40,7 +40,7 @@ class Genome:
 
         return output[0] # 0 - 1
 
-    def mutate(self, mutation_rate=0.1, mutation_strength=0.5):
+    def mutate(self, mutation_rate=0.05, mutation_strength=0.05):
         weights = self.weights
         mask = np.random.rand(len(weights)) < mutation_rate
         noise = np.random.randn(len(weights)) * mutation_strength
